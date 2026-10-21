@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Rayyan ✨</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #0c070a;
+      --card-bg: rgba(26, 15, 22, 0.68);
+      --card-border: rgba(235, 186, 179, 0.16);
+      --rose-gold: #e8b4b8;
+      --champagne: #f7e7ce;
+      --velvet-wine: #2d121e;
+      --accent-pink: #ff5e86;
+      --text-main: #fdfbf7;
+      --text-muted: #bda7b0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      user-select: none;
+    }
+
+    /* Ambient Background Elements */
+    .ambient-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(232, 180, 184, 0.1) 0%, rgba(45, 18, 30, 0.25) 50%, transparent 75%);
+      filter: blur(100px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .stars-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: var(--champagne);
+      border-radius: 50%;
+      opacity: 0;
+      animation: twinkle ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.1; transform: scale(0.8); }
+      100% { opacity: 0.85; transform: scale(1.3); }
+    }
+
+    /* Luxury Audio Player Widget */
+    .audio-dock {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      background: rgba(28, 16, 23, 0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .audio-dock:hover {
+      border-color: var(--rose-gold);
+    }
+
+    .play-btn {
+      background: none;
+      border: none;
+      color: var(--champagne);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.15);
+      color: var(--rose-gold);
+    }
+
+    .audio-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .audio-title {
+      font-size: 0.78rem;
+      color: var(--champagne);
+      letter-spacing: 0.04em;
+    }
+
+    .audio-bars {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 10px;
+      margin-top: 3px;
+    }
+
+    .audio-bar {
+      width: 2px;
+      height: 100%;
+      background: var(--rose-gold);
+      border-radius: 1px;
+      animation: barJump 1s ease-in-out infinite alternate;
+      animation-play-state: paused;
+    }
+
+    .audio-bar:nth-child(2) { animation-delay: 0.2s; }
+    .audio-bar:nth-child(3) { animation-delay: 0.4s; }
+
+    .playing .audio-bar {
+      animation-play-state: running;
+    }
+
+    .file-input-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-left: 1px solid var(--card-border);
+      padding-left: 10px;
+      transition: color 0.2s;
+    }
+
+    .file-input-label:hover {
+      color: var(--rose-gold);
+    }
+
+    #audioFileInput {
+      display: none;
+    }
+
+    @keyframes barJump {
+      0% { height: 2px; }
+      100% { height: 12px; }
+    }
+
+    /* Main Container & Stage Management */
+    .experience-container {
+      position: relative;
+      z-index: 1;
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stage {
+      display: none;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(30px) scale(0.98);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .stage.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Luxury Glass Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid var(--card-border);
+      border-radius: 32px;
+      padding: 48px 36px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.25rem;
+      letter-spacing: 0.15em;
+      color: var(--rose-gold);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: inline-block;
+    }
+
+    h1, h2 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 600;
+      line-height: 1.25;
+      background: linear-gradient(135deg, #ffffff 40%, var(--rose-gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h1 { font-size: 3rem; margin-bottom: 20px; }
+    h2 { font-size: 2.2rem; margin-bottom: 24px; }
+
+    p.lead {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1.8;
+      font-weight: 300;
+      margin-bottom: 36px;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      border-radius: 50px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 36px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b8b, #d94b6f);
+      color: white;
+      box-shadow: 0 10px 30px rgba(255, 94, 134, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 16px 40px rgba(255, 107, 139, 0.5);
+    }
+
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-color: var(--rose-gold);
+    }
+
+    /* Traits Grid */
+    .traits-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 32px 0 40px;
+      text-align: left;
+    }
+
+    .trait-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(232, 180, 184, 0.12);
+      border-radius: 20px;
+      padding: 20px 18px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .trait-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(232, 180, 184, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .trait-card .icon {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .trait-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      color: var(--champagne);
+      margin-bottom: 6px;
+    }
+
+    .trait-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Letter Section */
+    .letter-paper {
+      background: radial-gradient(circle at 50% 0%, rgba(45, 18, 30, 0.75) 0%, rgba(18, 10, 15, 0.88) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 38px 30px;
+      margin: 30px 0;
+      text-align: left;
+      position: relative;
+      max-height: 480px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--rose-gold) transparent;
+    }
+
+    .letter-paper::-webkit-scrollbar {
+      width: 5px;
+    }
+    .letter-paper::-webkit-scrollbar-thumb {
+      background-color: var(--rose-gold);
+      border-radius: 10px;
+    }
+
+    .letter-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+      line-height: 1.85;
+      color: #f3e5dc;
+      font-weight: 400;
+    }
+
+    .letter-body p {
+      margin-bottom: 20px;
+    }
+
+    .letter-sign {
+      font-family: 'Alex Brush', cursive;
+      font-size: 2.2rem;
+      color: var(--rose-gold);
+      text-align: right;
+      margin-top: 24px;
+      display: block;
+    }
+
+    /* Secret Easter Egg */
+    .secret-sparkle {
+      display: inline-block;
+      cursor: pointer;
+      color: var(--champagne);
+      font-size: 1.1rem;
+      margin-top: 20px;
+      opacity: 0.35;
+      transition: all 0.3s ease;
+      padding: 10px;
+    }
+
+    .secret-sparkle:hover {
+      opacity: 1;
+      transform: scale(1.3) rotate(45deg);
+      color: var(--rose-gold);
+      text-shadow: 0 0 12px var(--rose-gold);
+    }
+
+    .secret-message {
+      display: none;
+      margin-top: 20px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--rose-gold);
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1.2rem;
+      color: var(--champagne);
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating Heart Particles */
+    .floating-heart {
+      position: fixed;
+      pointer-events: none;
+      z-index: 99;
+      font-size: 1.4rem;
+      animation: floatUpAndFade 2.4s ease-out forwards;
+    }
+
+    @keyframes floatUpAndFade {
+      0% { opacity: 1; transform: translateY(0) scale(0.6) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(-160px) scale(1.4) rotate(20deg); }
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2.3rem; }
+      h2 { font-size: 1.8rem; }
+      .traits-grid { grid-template-columns: 1fr; }
+      .glass-card { padding: 34px 20px; }
+      .letter-paper { padding: 28px 20px; max-height: 420px; }
+      .letter-body { font-size: 1.12rem; }
+      .btn { width: 100%; }
+      .actions-row { flex-direction: column; }
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+  <div class="stars-layer" id="starsLayer"></div>
+
+  <audio id="bgMusic" loop preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112199.mp3" type="audio/mp3">
+  </audio>
+
+  <div class="audio-dock" id="audioDock">
+    <button class="play-btn" id="playToggleBtn" onclick="togglePlayMusic()" title="Play / Pause">▶</button>
+    <div class="audio-meta">
+      <span class="audio-title" id="songTitle">♫ made me think of you</span>
+      <div class="audio-bars" id="audioBars">
+        <div class="audio-bar"></div>
+        <div class="audio-bar"></div>
+        <div class="audio-bar"></div>
+      </div>
+    </div>
+    <label class="file-input-label" title="Upload custom song">
+      Choose Song
+      <input type="file" id="audioFileInput" accept="audio/*" onchange="loadCustomMusic(event)">
+    </label>
+  </div>
+
+  <main class="experience-container">
+
+    <section class="stage active" id="stage1">
+      <div class="glass-card">
+        <span class="tagline">An Invitation</span>
+        <h1>Hey, Rayyan.</h1>
+        <p class="lead">
+          I built a little world for you to capture something I've wanted to say for a while.
+        </p>
+        <button class="btn btn-primary" onclick="goToStage(2, true)">
+          Open your surprise ✨
+        </button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage2">
+      <div class="glass-card">
+        <span class="tagline">Chapter 01</span>
+        <h2>Where it all started</h2>
+        <p class="lead">
+          We met on Snapchat… and I honestly had no idea that one conversation would quietly lead me all the way here. 
+          What started as simple replies quickly became the parts of my day I look forward to the most.
+        </p>
+        <button class="btn btn-primary" onclick="goToStage(3)">
+          Continue our story 🕊️
+        </button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage3">
+      <div class="glass-card">
+        <span class="tagline">Chapter 02</span>
+        <h2>Things I admire about you</h2>
+        <p class="lead" style="margin-bottom: 20px;">
+          It’s impossible to list everything, but here are a few things that never fail to captivate me:
+        </p>
+
+        <div class="traits-grid">
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">✍️</span>
+            <h3>Your Writing</h3>
+            <p>The eloquence, depth, and beauty you effortlessly put into words.</p>
+          </div>
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">💎</span>
+            <h3>Your Strength</h3>
+            <p>The quiet, graceful resilience you carry yourself with every day.</p>
+          </div>
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">✨</span>
+            <h3>Your Independence</h3>
+            <p>The way you walk your own path with poise and confidence.</p>
+          </div>
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">🚀</span>
+            <h3>Your Ambition</h3>
+            <p>Your drive to grow, excel, and build the future you deserve.</p>
+          </div>
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">🌸</span>
+            <h3>The Little Things</h3>
+            <p>Your unique sense of humor, gentle laughs, and cute reactions.</p>
+          </div>
+          <div class="trait-card" onclick="spawnHeart(event)">
+            <span class="icon">❤️</span>
+            <h3>How Good You Smell</h3>
+            <p>Unforgettable. Seriously, top-tier fragrance taste 😂✨</p>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goToStage(4)">
+          Read my letter to you 💌
+        </button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage4">
+      <div class="glass-card">
+        <span class="tagline">Chapter 03</span>
+        <h2>From the heart</h2>
+
+        <div class="letter-paper">
+          <div class="letter-body">
+            <p>Rayyan, 🌸✨</p>
+
+            <p>
+              tbvh yea, falling in love with you has been one of the greatest decisions i made and i am sure i wont regret it at all, trust me. 🥺💖 I have thought about it countless times and i know if i don't ask now, i prolly won't for the rest of my life and i don't want that to happen so i am stepping up to ask the question. 🌷
+            </p>
+
+            <p>
+              I want to be there for you whenever you need me to. I will make sure to do everything and anything in my power to love and protect you through every good and difficult day. 🤍 I have so many things to say lol, but imma keep it short still...... 🙈
+            </p>
+
+            <p>
+              You remember the first time i said i liked you yea? I was sooooooo scared like my hands were shaking lol 😭😂 Hamzah was there and he was the one that said, <em>"send am joor"</em> 😂, he helped so much fr. 
+            </p>
+
+            <p>
+              So honestly, no pressure at all. 🧸 I still want to know more of you, i want to know you so well that we'll be like twinies lol 👯‍♀️✨. I might still end up second-guessing and not showing you this website tho 🙈, but i really do want you to see it to know how i feel frr. 
+            </p>
+
+            <p>
+              So yea, regardless of what your decision is yea, i will respect it no matter what, and i wouldn't even dare make it awkward or anything. 🤍 I do know you might not be ready for anything right now, just me guessing, but i am asking still so it would stop weighing on my mind 💭✨...
+            </p>
+
+            <p>
+              I love you a lot fr and i am genuinely serious about it, more than you know. 🌹❤️
+            </p>
+          </div>
+          <span class="letter-sign">Abdulhafiz</span>
+        </div>
+
+        <button class="btn btn-primary" onclick="goToStage(5)">
+          One last thing… 🌹
+        </button>
+      </div>
+    </section>
+
+    <section class="stage" id="stage5">
+      <div class="glass-card">
+        <span class="tagline">The Question</span>
+        <h2 style="font-size: 2.4rem;">Rayyan,</h2>
+        <p class="lead" style="font-size: 1.15rem; color: #f7e7ce; margin-bottom: 30px;">
+          I've got one last question for you.
+        </p>
+        
+        <h1 style="font-size: 2.5rem; margin-bottom: 40px;">Will you be my girlfriend?</h1>
+
+        <div class="actions-row">
+          <button class="btn btn-primary" onclick="handleAccept(event)">
+            ♡ YES
+          </button>
+          <button class="btn btn-ghost" onclick="handleMoment()">
+            I need a moment
+          </button>
+        </div>
+
+        <p id="momentNotice" style="display: none; margin-top: 24px; font-size: 0.95rem; color: var(--rose-gold); line-height: 1.6;">
+          Take all the time in the world, beautiful. There’s never any rush. I’m right here whenever you're ready. ✨
+        </p>
+      </div>
+    </section>
+
+    <section class="stage" id="stage6">
+      <div class="glass-card">
+        <span class="tagline">Our New Beginning</span>
+        <h2 style="font-size: 2.2rem; margin-bottom: 12px;">“I guess this is where our story officially begins.”</h2>
+        
+        <p style="font-family: 'Cormorant Garamond', serif; font-size: 1.9rem; color: var(--rose-gold); margin: 28px 0;">
+          Rayyan ♡ Abdulhafiz
+        </p>
+        
+        <p class="lead" style="margin-bottom: 10px;">
+          Thank you for choosing me. Here is to all the late conversations, shared dreams, and beautiful moments ahead.
+        </p>
+
+        <div>
+          <span class="secret-sparkle" title="A tiny secret" onclick="revealSecret()">✦</span>
+          <div class="secret-message" id="secretNote">
+            <p>P.S.</p>
+            <p style="font-size: 1.3rem; margin-top: 4px;">You were worth building an entire website for. ❤️</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 1. Generate Starry Sky
+    const starsContainer = document.getElementById('starsLayer');
+    for (let i = 0; i < 40; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.width = Math.random() * 2.5 + 1 + 'px';
+      star.style.height = star.style.width;
+      star.style.top = Math.random() * 100 + 'vh';
+      star.style.left = Math.random() * 100 + 'vw';
+      star.style.animationDuration = (Math.random() * 3 + 2.5) + 's';
+      star.style.animationDelay = (Math.random() * 3) + 's';
+      starsContainer.appendChild(star);
+    }
+
+    // 2. Custom Audio Player Logic
+    const music = document.getElementById('bgMusic');
+    const playBtn = document.getElementById('playToggleBtn');
+    const audioDock = document.getElementById('audioDock');
+    let isPlaying = false;
+
+    function playAudio() {
+      music.volume = 0.55;
+      music.play().then(() => {
+        isPlaying = true;
+        playBtn.innerText = '⏸';
+        audioDock.classList.add('playing');
+      }).catch(err => console.log('Autoplay restriction:', err));
+    }
+
+    function pauseAudio() {
+      music.pause();
+      isPlaying = false;
+      playBtn.innerText = '▶';
+      audioDock.classList.remove('playing');
+    }
+
+    function togglePlayMusic() {
+      if (isPlaying) {
+        pauseAudio();
+      } else {
+        playAudio();
+      }
+    }
+
+    // Allow user to upload their own MP3
+    function loadCustomMusic(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const fileURL = URL.createObjectURL(file);
+        music.src = fileURL;
+        document.getElementById('songTitle').innerText = file.name.slice(0, 18) + '...';
+        playAudio();
+      }
+    }
+
+    // 3. Stage Navigation
+    function goToStage(stageNumber, startMusic = false) {
+      if (startMusic && !isPlaying) playAudio();
+
+      const stages = document.querySelectorAll('.stage');
+      stages.forEach(s => s.classList.remove('active'));
+
+      const target = document.getElementById(`stage${stageNumber}`);
+      if (target) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          target.classList.add('active');
+        }, 120);
+      }
+    }
+
+    // 4. Heart Particles on Tap
+    function spawnHeart(e) {
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart';
+      heart.innerHTML = '❤️';
+      heart.style.left = (e.clientX || window.innerWidth / 2) - 12 + 'px';
+      heart.style.top = (e.clientY || window.innerHeight / 2) - 12 + 'px';
+      document.body.appendChild(heart);
+
+      setTimeout(() => {
+        heart.remove();
+      }, 2400);
+    }
+
+    // 5. Question Handling
+    function handleMoment() {
+      document.getElementById('momentNotice').style.display = 'block';
+    }
+
+    function handleAccept(e) {
+      // Grand Confetti Blast
+      const duration = 4.5 * 1000;
+      const end = Date.now() + duration;
+      const colors = ['#e8b4b8', '#ff5e86', '#f7e7ce', '#ffffff', '#ffd700'];
+
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 60,
+          origin: { x: 0, y: 0.7 },
+          colors: colors
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 60,
+          origin: { x: 1, y: 0.7 },
+          colors: colors
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+
+      // Cinematic audio crescendo
+      if (isPlaying) {
+        let vol = music.volume;
+        const fadeInterval = setInterval(() => {
+          if (vol < 0.9) {
+            vol += 0.05;
+            music.volume = Math.min(vol, 1);
+          } else {
+            clearInterval(fadeInterval);
+          }
+        }, 200);
+      }
+
+      goToStage(6);
+    }
+
+    // 6. Easter Egg Secret Reveal
+    function revealSecret() {
+      document.getElementById('secretNote').style.display = 'block';
+      confetti({
+        particleCount: 30,
+        spread: 45,
+        origin: { y: 0.85 }
+      });
+    }
+  </script>
+</body>
+</html>
